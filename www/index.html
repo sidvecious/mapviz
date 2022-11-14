@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MapViz</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/h3-js@3.7.2/dist/h3-js.umd.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js"></script>
+    <style>
+        .map {
+            height: 600px
+        }
+    </style>
+</head>
+<body>
+    <h2>MapViz</h2>
+    <ul>
+        <li>Latitude: <span id="lat"></span></li>
+        <li>Longitude: <span id="lng"></span></li>
+        <li>Accuracy: <span id="accuracy"></span></li>
+    </ul>
+    <div id="map" class="map"></div>
+    <script>
+        let map = L.map('map');
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+        map.on('click', (e) => {
+            const {lat, lng} = e.latlng;
+            let id = h3.geoToH3(lat, lng, h3zoom);
+            let points = h3.h3ToGeoBoundary(id);
+            L.polygon(points).addTo(map);
+        });
+
+        navigator.geolocation.getCurrentPosition(
+            // success
+            (pos) => {
+                const crd = pos.coords;
+
+                document.querySelector('#lat').textContent = `${crd.latitude}`;
+                document.querySelector('#lng').textContent = `${crd.longitude}`;
+                document.querySelector('#accuracy').textContent = `${crd.accuracy} meters.`;
+
+                map.setView([crd.latitude, crd.longitude], 14);
+                L.marker([crd.latitude, crd.longitude]).addTo(map);
+            },
+            // error
+            (err) => {
+                console.warn(`ERROR(${err.code}): ${err.message}`);
+            }, {
+           enableHighAccuracy: true,
+           timeout: 5000,
+           maximumAge: 0
+        });
+    </script>
+</body>
+</html>
