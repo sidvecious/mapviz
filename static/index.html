@@ -19,16 +19,39 @@
         <li>Longitude: <span id="lng"></span></li>
         <li>Accuracy: <span id="accuracy"></span></li>
     </ul>
+    <p>
+        Resolution: <input id='res' type="number" value="9" />
+    </p>
     <div id="map" class="map"></div>
     <script>
         let map = L.map('map');
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+        
         map.on('click', (e) => {
             const {lat, lng} = e.latlng;
-            let id = h3.geoToH3(lat, lng, h3zoom);
-            let points = h3.h3ToGeoBoundary(id);
-            L.polygon(points).addTo(map);
+            const res = $('#res').val() || 9;
+            let id = h3.geoToH3(lat, lng, res);
+
+            query(id, (data) => {
+                console.log(data);
+                let points = h3.h3ToGeoBoundary(id);
+                L.polygon(points).addTo(map);
+            });
         });
+
+        function query(id, cb) {
+            return window.fetch(`/query/${id}`)
+                  .then((res) => {
+                    if (res.status !== 200) {
+                        throw new Error('Failed querying')
+                    }
+                  })
+                  .then(res => res.json())
+                  .then(data => cb)
+                  .catch((err) => {
+                    console.error('query error:', err)
+                });
+        }
 
         navigator.geolocation.getCurrentPosition(
             // success
