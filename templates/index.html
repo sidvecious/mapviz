@@ -22,6 +22,7 @@
     <p>
         Resolution: <input id='res' type="number" value="9" />
     </p>
+    <img src="/static/map.png" />
     <div id="map" class="map"></div>
     <script>
         let map = L.map('map');
@@ -49,7 +50,7 @@
                   .then(res => res.json())
                   .then(data => cb)
                   .catch((err) => {
-                    console.error('query error:', err)
+                    alert(`query error: ${err}`)
                 });
         }
 
